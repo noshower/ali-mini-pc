@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "darcyvscode" is now active!');
-  const templatesPath = context.asAbsolutePath('src/templates');
+  const templatesPath = context.asAbsolutePath('templates');
   context.asAbsolutePath;
   context.subscriptions.push(
     vscode.commands.registerCommand('darcy.createPage', async uri => {

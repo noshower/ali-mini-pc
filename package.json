@@ -2,14 +2,19 @@
   "name": "ali-app-pc",
   "displayName": "ali-app-pc",
   "description": "darcy ali mini app plugin",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "publisher": "noshower",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/noshower/ali-mini-pc.git"
+  },
   "engines": {
     "vscode": "^1.47.0"
   },
   "categories": [
     "Other"
   ],
+  "icon": "image/icon.png",
   "activationEvents": [
     "onCommand:darcy.createPage",
     "onCommand:darcy.createComponent"
@@ -67,5 +72,6 @@
   "dependencies": {
     "@types/fs-extra": "^9.0.1",
     "fs-extra": "^9.0.1"
-  }
+  },
+  "license": "MIT"
 }
