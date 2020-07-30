@@ -2,7 +2,7 @@
   "name": "ali-app-pc",
   "displayName": "ali-app-pc",
   "description": "darcy ali mini app plugin",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "noshower",
   "repository": {
     "type": "git",
@@ -17,7 +17,8 @@
   "icon": "image/icon.png",
   "activationEvents": [
     "onCommand:darcy.createPage",
-    "onCommand:darcy.createComponent"
+    "onCommand:darcy.createComponent",
+    "onCommand:darcy.checkComponentName"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -31,6 +32,11 @@
         "command": "darcy.createComponent",
         "title": "新建小程序组件",
         "category": "darcy"
+      },
+      {
+        "command": "darcy.checkComponentName",
+        "title": "检查小程序组件名",
+        "category": "darcy"
       }
     ],
     "menus": {
@@ -42,6 +48,11 @@
         },
         {
           "command": "darcy.createPage",
+          "group": "darcy",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "darcy.checkComponentName",
           "group": "darcy",
           "when": "explorerResourceIsFolder"
         }

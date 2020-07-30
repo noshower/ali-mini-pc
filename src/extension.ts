@@ -1,11 +1,50 @@
 import * as vscode from 'vscode';
-const path = require('path');
-const fs = require('fs-extra');
+import * as path from 'path';
+import * as fs from 'fs-extra';
+
+function findAppRootPath(filePath: string): string | null {
+  let dir = path.dirname(filePath);
+  while (dir && dir.length > 0) {
+    if (fs.pathExistsSync(path.join(dir, 'app.json'))) {
+      return dir;
+    }
+    dir = path.dirname(dir);
+  }
+  return null;
+}
+
+function findCompoentName(filePath: string, existComponentNames: Set<string>) {
+  const stat = fs.statSync(filePath);
+  if (stat.isFile() && path.extname(filePath) === '.json') {
+    const jsonObject = fs.readJSONSync(filePath);
+    const fileName = path.basename(filePath, '.json');
+    if (jsonObject.component) {
+      if (existComponentNames.has(fileName)) {
+        vscode.window.showErrorMessage(`组件${fileName}已存在，请换一个名字`);
+        throw new Error('组件名重复');
+      } else {
+        existComponentNames.add(fileName);
+      }
+    }
+  } else if (stat.isDirectory()) {
+    fs.readdirSync(filePath).forEach((name: string) => {
+      console.log(path.join(filePath, name));
+      findCompoentName(path.join(filePath, name), existComponentNames);
+    });
+  }
+}
+
+function findSameComponentName(filePath: string, existComponentNames: Set<string>) {
+  const appRootPath = findAppRootPath(filePath);
+  if (!appRootPath) {
+    return;
+  }
+  return findCompoentName(appRootPath, existComponentNames);
+}
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Congratulations, your extension "darcyvscode" is now active!');
   const templatesPath = context.asAbsolutePath('templates');
-  context.asAbsolutePath;
+
   context.subscriptions.push(
     vscode.commands.registerCommand('darcy.createPage', async uri => {
       const name = await vscode.window.showInputBox({
@@ -35,7 +74,11 @@ export function activate(context: vscode.ExtensionContext) {
       if (name) {
         const targetFloderPath = path.join(uri.fsPath, name + '/' + name);
         const pageFolderPath = path.join(templatesPath, 'component');
-
+        try {
+          findSameComponentName(uri.fsPath, new Set(name));
+        } catch (e) {
+          console.log(e);
+        }
         await fs.copy(`${pageFolderPath}/index.axml`, `${targetFloderPath}.axml`);
         await fs.copy(`${pageFolderPath}/index.js`, `${targetFloderPath}.ts`);
         await fs.copy(`${pageFolderPath}/index.json`, `${targetFloderPath}.json`);
@@ -43,7 +86,14 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('darcy.checkComponentName', async uri => {
+      try {
+        const componentName = findSameComponentName(uri.fsPath, new Set());
+      } catch (e) {}
+    }),
+  );
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {}
