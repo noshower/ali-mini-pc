@@ -16,7 +16,10 @@ function findAppRootPath(filePath: string): string | null {
 function findCompoentName(filePath: string, existComponentNames: Set<string>) {
   const stat = fs.statSync(filePath);
   if (stat.isFile() && path.extname(filePath) === '.json') {
-    const jsonObject = fs.readJSONSync(filePath);
+    let jsonObject: any = {};
+    try {
+      jsonObject = fs.readJSONSync(filePath);
+    } catch {}
     const fileName = path.basename(filePath, '.json');
     if (jsonObject.component) {
       if (existComponentNames.has(fileName)) {
@@ -28,8 +31,9 @@ function findCompoentName(filePath: string, existComponentNames: Set<string>) {
     }
   } else if (stat.isDirectory()) {
     fs.readdirSync(filePath).forEach((name: string) => {
-      console.log(path.join(filePath, name));
-      findCompoentName(path.join(filePath, name), existComponentNames);
+      if (name !== 'node_modules') {
+        findCompoentName(path.join(filePath, name), existComponentNames);
+      }
     });
   }
 }
@@ -75,14 +79,14 @@ export function activate(context: vscode.ExtensionContext) {
         const targetFloderPath = path.join(uri.fsPath, name + '/' + name);
         const pageFolderPath = path.join(templatesPath, 'component');
         try {
-          findSameComponentName(uri.fsPath, new Set(name));
+          findSameComponentName(uri.fsPath, new Set([name]));
+          await fs.copy(`${pageFolderPath}/index.axml`, `${targetFloderPath}.axml`);
+          await fs.copy(`${pageFolderPath}/index.js`, `${targetFloderPath}.ts`);
+          await fs.copy(`${pageFolderPath}/index.json`, `${targetFloderPath}.json`);
+          await fs.copy(`${pageFolderPath}/index.less`, `${targetFloderPath}.less`);
         } catch (e) {
           console.log(e);
         }
-        await fs.copy(`${pageFolderPath}/index.axml`, `${targetFloderPath}.axml`);
-        await fs.copy(`${pageFolderPath}/index.js`, `${targetFloderPath}.ts`);
-        await fs.copy(`${pageFolderPath}/index.json`, `${targetFloderPath}.json`);
-        await fs.copy(`${pageFolderPath}/index.less`, `${targetFloderPath}.less`);
       }
     }),
   );
@@ -90,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('darcy.checkComponentName', async uri => {
       try {
-        const componentName = findSameComponentName(uri.fsPath, new Set());
+        findSameComponentName(uri.fsPath, new Set());
       } catch (e) {}
     }),
   );
